@@ -38,6 +38,7 @@ const DOM = {
   
   btnLoginTrigger: document.getElementById('btn-login-trigger'),
   btnLogout: document.getElementById('btn-logout'),
+  btnExportCSV: document.getElementById('btn-export-csv'),
   adminBadge: document.getElementById('admin-badge'),
   loginModal: document.getElementById('login-modal'),
   btnCloseModal: document.getElementById('btn-close-modal'),
@@ -663,6 +664,71 @@ DOM.btnLogout.addEventListener('click', () => {
   checkLoginState();
   loadAllData();
 });
+
+// Exportar para Planilha (CSV)
+function exportToCSV() {
+  if (!state.isAdmin) return;
+
+  // Cálculo de finanças locais para garantir valores atualizados
+  const totalFood = state.food.reduce((sum, item) => sum + item.price, 0);
+  const totalOtherExpenses = state.expenses.reduce((sum, item) => sum + item.price, 0);
+  const grandTotal = totalFood + totalOtherExpenses;
+  const payingAdults = state.people.filter(p => !p.isChild);
+  const payingCount = payingAdults.length;
+  const costPerPerson = payingCount > 0 ? grandTotal / payingCount : 0;
+  const confirmedAdults = payingAdults.filter(p => p.status === 'confirmado');
+  const confirmedCount = confirmedAdults.length;
+  const amountCollected = confirmedCount * costPerPerson;
+
+  let csv = '\uFEFF'; // BOM para Excel reconhecer caracteres acentuados em UTF-8
+  csv += 'RELATÓRIO DE SÃO JOÃO - FAMÍLIA VIANA GOMES\n';
+  csv += `Data de Exportação: ${new Date().toLocaleString('pt-BR')}\n\n`;
+
+  // Seção Financeira
+  csv += 'RESUMO FINANCEIRO\n';
+  csv += 'Despesas Totais;Adultos Pagantes;Custo por Adulto;Total Arrecadado;Confirmados / Total\n';
+  csv += `"${formatCurrency(grandTotal)}";${payingCount};"${formatCurrency(costPerPerson)}";"${formatCurrency(amountCollected)}";"${confirmedCount} de ${payingCount}"\n\n`;
+
+  // Seção Pessoas
+  csv += 'PARTICIPANTES\n';
+  csv += 'Nome;Tipo;Status Pagamento\n';
+  state.people.forEach(p => {
+    const tipo = p.isChild ? 'Menor de 15 anos (Isento)' : 'Adulto Pagante';
+    const status = p.isChild ? 'Isento' : (p.status === 'confirmado' ? 'Confirmado' : 'Pendente');
+    csv += `"${p.name}";"${tipo}";"${status}"\n`;
+  });
+  csv += '\n';
+
+  // Seção Comidas
+  csv += 'COMIDAS E BEBIDAS\n';
+  csv += 'Item;Preço;Status\n';
+  state.food.forEach(f => {
+    csv += `"${f.name}";"${formatCurrency(f.price)}";"${(f.status === 'confirmado' || f.status === 'comprado') ? 'Comprado' : 'Pendente'}"\n`;
+  });
+  csv += '\n';
+
+  // Seção Despesas
+  csv += 'OUTRAS DESPESAS\n';
+  csv += 'Item;Preço;Status\n';
+  state.expenses.forEach(e => {
+    csv += `"${e.name}";"${formatCurrency(e.price)}";"${(e.status === 'confirmado' || e.status === 'pago') ? 'Pago' : 'Pendente'}"\n`;
+  });
+
+  // Download do arquivo
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `sao_joao_viana_gomes_${new Date().toISOString().slice(0, 10)}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  showToast('Planilha exportada com sucesso!');
+}
+
+DOM.btnExportCSV.addEventListener('click', exportToCSV);
 
 // --- INICIALIZAÇÃO ---
 
