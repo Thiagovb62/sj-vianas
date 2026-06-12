@@ -11,8 +11,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'sao-joao-viana-gomes-secret-key-20
 
 app.use(cors());
 app.use(express.json());
-// Servir arquivos estáticos a partir da raiz do projeto (onde ficarão index.html, style.css, app.js)
-app.use(express.static(path.join(__dirname, '../')));
+// Servir arquivos estáticos a partir da pasta public
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Verifica a variável de banco de dados
 if (!process.env.DATABASE_URL) {
