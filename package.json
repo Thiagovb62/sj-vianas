@@ -1,0 +1,24 @@
+{
+  "name": "sao-joao-viana-gomes",
+  "version": "1.0.0",
+  "description": "App de controle de pessoas, comidas e despesas do São João da Família Viana Gomes",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "sao-joao",
+    "gestao",
+    "familia"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.21.0"
+  }
+}
